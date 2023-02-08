@@ -1,139 +1,193 @@
 
 let AddToBill = document.getElementById("btn");
 
-AddToBill.addEventListener("click" , addOrderToCrudCrud);
+AddToBill.addEventListener("click", addOrderToCrudCrud);
 
-function addOrderToCrudCrud(event){
-    event.preventDefault();
-    // console.log("working")
+var editId = null;
 
-    let price = document.getElementById("price").value;
-    let dish = document.getElementById("dish").value;
-    let table = document.getElementById("table").value;
+async function addOrderToCrudCrud(event) {
 
-    if(price ==='' || dish==='' || table ===''){
-        confirm('price , dish and table number required');
-        return
+    try {
+        // event.preventDefault();
+        // console.log("working")
+        let price = document.getElementById("price").value;
+        let dish = document.getElementById("dish").value;
+        let table = document.getElementById("table").value;
+
+        if (price === '' || dish === '' || table === '') {
+            confirm('price , dish and table number required');
+            return
+        }
+
+        // console.log(price +" " +dish + " " + table)
+
+
+        let obj = {
+            price,
+            dish,
+            table
+        }
+
+        if (editId) {
+            try {
+                let value = await axios
+                    .put(`https://crudcrud.com/api/6889ea594c654e0486ed7e3873ef6ff3/OrderData/${editId} `, obj)
+
+                console.log(value);
+                showOrderOnUI(editId);
+
+            } catch (err) {
+                console.log(err);
+            }
+
+        }
+        else {
+            try {
+                let res = await axios
+                    .post(`https://crudcrud.com/api/6889ea594c654e0486ed7e3873ef6ff3/OrderData`, obj)
+                    console.log(res);
+                // console.log(res.data._id);
+                let ID = res.data._id;
+                // console.log(ID);
+                showOrderOnUI(ID);
+            } catch (error) {
+                console.log(error);
+            }
+
+        }
+
     }
-
-    // console.log(price +" " +dish + " " + table)
-
-
-    let obj = {
-        price,
-        dish,
-        table
+    catch (err) {
+        console.log(err);
     }
-
-    axios
-        .post(`https://crudcrud.com/api/94271cf58bdd4dd683c51dfdb9a7b95d/OrderData`,obj)
-        .then(res =>{
-            // console.log(res.data._id);
-            let ID = res.data._id;
-            showOrderOnUI(ID);
-        })
-        .catch(err => console.log(err));
 }
 
 
-function showOrderOnUI(ID){
-
-    document.getElementById("price").value = ''
-    document.getElementById("dish").value = 'Dish'
-    document.getElementById("table").value = 'table'
 
 
-    axios
-        .get(`https://crudcrud.com/api/94271cf58bdd4dd683c51dfdb9a7b95d/OrderData/${ID}`)
-        .then(res => {
-            // console.log(res.data.table)
+async function showOrderOnUI(ID) {
+
+    try {
+
+        document.getElementById("price").value = ''
+        document.getElementById("dish").value = 'Dish'
+        document.getElementById("table").value = 'table'
+
+
+        let res = await axios
+            .get(`https://crudcrud.com/api/6889ea594c654e0486ed7e3873ef6ff3/OrderData/${ID}`)
+
             let table = res.data.table;
-            let price = res.data.price;
-            let dish  = res.data.dish;
-            
+                let price = res.data.price;
+                let dish = res.data.dish;
+
 
                 let parentElem = document.getElementById(table);
                 let childElem = `<li id='${ID}'>  ${price} - ${dish} - ${table} 
+                <button class="btn btn-warning mb-2" onclick=editOrder('${ID}') >Change Order</button>
                 <button class="btn btn-danger mb-2" onclick=deleteOrder('${ID}') >Delete Order</button>
                 </li>`
 
                 parentElem.innerHTML = parentElem.innerHTML + childElem;
 
-            // }else if(table === 'table-2'){
-            //     let parentElem = document.getElementById('table-2');
-            //     let childElem = `<li id='${ID}'> ${dish} ${table} - ${price}
-            //     <button onclick=deleteOrder('${ID}')>Delete</button>
-            //     </li>`
-
-            //     parentElem.innerHTML = parentElem.innerHTML + childElem;
-
-
-            // }else{
-
-            //     let parentElem = document.getElementById('table-3');
-            //     let childElem = `<li id='${ID}'> ${dish} ${table} - ${price}
-            //     <button onclick=deleteOrder('${ID}')>Delete</button>
-            //     </li>`
-
-            //     parentElem.innerHTML = parentElem.innerHTML + childElem;
-
-            // }
             
+    }
+    catch (error) {
+        console.log(error);
+    }
 
-        }).catch(err => console.log(err));
+
+
+}
+
+
+async function editOrder(ID) {
+
+    try {
+        // console.log(ID)
+        editId = ID;
+
+        let res = await axios
+            .get(`https://crudcrud.com/api/6889ea594c654e0486ed7e3873ef6ff3/OrderData/${ID}`)
+
+             // console.log(res.data.price);
+             document.getElementById('price').value = res.data.price;
+             document.getElementById('dish').value = res.data.dish;
+             document.getElementById('table').value = res.data.table;
+
+             removeOrderFromUI(ID);
+
+            
+    }
+    catch (error) {
+        console.log(error);
+    }
+
 }
 
 
 
-function deleteOrder(ID){
+async function deleteOrder(ID) {
+    try {
 
-    // console.log(ID)
+        // console.log(ID)
 
-    removeOrderFromUI(ID)
-    axios
-        .delete(`https://crudcrud.com/api/94271cf58bdd4dd683c51dfdb9a7b95d/OrderData/${ID}`)
-        .then(res => {
-            // console.log(res);
+        removeOrderFromUI(ID)
+        let res = await axios
+            .delete(`https://crudcrud.com/api/6889ea594c654e0486ed7e3873ef6ff3/OrderData/${ID}`)
+           
+            console.log(res);
             // console.log();
-            
-        })
-        .catch(err => console.log(err));
 
-    
+
+    }
+    catch (error) {
+        console.log(error);
+    }
+
+
 }
 
-function removeOrderFromUI(ID){
+async function removeOrderFromUI(ID) {
 
-    axios
-    .get(`https://crudcrud.com/api/94271cf58bdd4dd683c51dfdb9a7b95d/OrderData/${ID}`)
-    .then(res =>{
-    
-            let table = res.data.table;
-            console.log(table)
-            let parentElem = document.getElementById(table);
+    try {
 
-            let childElem = document.getElementById(ID);
-            // console.log(childElem)
-            parentElem.removeChild(childElem);       
-        })
-            
+        // console.log(harish);
+
+        let res = await axios
+            .get(`https://crudcrud.com/api/6889ea594c654e0486ed7e3873ef6ff3/OrderData/${ID}`)
+           
+             // console.log(res.data.table);
+             let parentElem = document.getElementById(res.data.table);
+             let childElem = document.getElementById(ID);
+
+             parentElem.removeChild(childElem);
+
+
+    }
+    catch (error) {
+        console.log(error);
+    }
+
 }
 
 
-document.addEventListener('DOMContentLoaded' , ()=>{
+document.addEventListener('DOMContentLoaded', async () => {
 
-    axios   
-    .get(`https://crudcrud.com/api/94271cf58bdd4dd683c51dfdb9a7b95d/OrderData`)
-    .then(res =>{
-        // console.log(res.data)
+    try {
 
-        res.data.forEach(element => {
-            // console.log(element._id);
-            showOrderOnUI(element._id)
-        })
+       let res = await axios
+            .get(`https://crudcrud.com/api/6889ea594c654e0486ed7e3873ef6ff3/OrderData`)
+                
+            // console.log(res);
 
+            res.data.forEach(element => {
+                // console.log(element._id);
+                showOrderOnUI(element._id)
+            })
 
-    })
-    .catch(err => console.log(err));
+    } catch (err){
+        console.log(err);
+    }
 
 })
